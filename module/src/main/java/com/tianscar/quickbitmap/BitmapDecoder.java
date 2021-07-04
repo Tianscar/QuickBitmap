@@ -60,17 +60,20 @@ public final class BitmapDecoder {
 
     private BitmapDecoder (){}
 
-    public static @Nullable Bitmap decodeStream (@NonNull InputStream stream) {
+    public static @Nullable Bitmap decodeStream (@NonNull InputStream stream,
+                                                 @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         try {
-            bitmap = BitmapFactory.decodeStream(stream);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            options.inPreferredConfig = config;
+            bitmap = BitmapFactory.decodeStream(stream, null, options);
             stream.close();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
         if (bitmap != null) {
-            bitmap = BitmapUtils.setMutable(bitmap);
             if (!bitmap.hasAlpha()) {
                 bitmap.setHasAlpha(true);
             }
@@ -78,12 +81,20 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeStream (@NonNull InputStream stream, @NonNull Rect region) {
+    public static @Nullable Bitmap decodeStream(@NonNull InputStream stream) {
+        return decodeStream(stream, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeStream (@NonNull InputStream stream,
+                                                 @NonNull Rect region, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         BitmapRegionDecoder decoder = null;
         try {
             decoder = BitmapRegionDecoder.newInstance(stream, false);
-            bitmap = decoder.decodeRegion(region, null);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            options.inPreferredConfig = config;
+            bitmap = decoder.decodeRegion(region, options);
             stream.close();
         }
         catch (IOException e) {
@@ -97,7 +108,6 @@ public final class BitmapDecoder {
             }
         }
         if (bitmap != null) {
-            bitmap = BitmapUtils.setMutable(bitmap);
             if (!bitmap.hasAlpha()) {
                 bitmap.setHasAlpha(true);
             }
@@ -105,7 +115,11 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeFile (@NonNull File file) {
+    public static @Nullable Bitmap decodeStream(@NonNull InputStream stream, @NonNull Rect region) {
+        return decodeStream(stream, region, null);
+    }
+
+    public static @Nullable Bitmap decodeFile (@NonNull File file, @Nullable Bitmap.Config config) {
         if (!file.exists()) {
             return null;
         }
@@ -115,14 +129,16 @@ public final class BitmapDecoder {
         Bitmap bitmap = null;
         try {
             FileInputStream stream = new FileInputStream(file);
-            bitmap = BitmapFactory.decodeFileDescriptor(stream.getFD());
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            options.inPreferredConfig = config;
+            bitmap = BitmapFactory.decodeFileDescriptor(stream.getFD(), null, options);
             stream.close();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
         if (bitmap != null) {
-            bitmap = BitmapUtils.setMutable(bitmap);
             if (!bitmap.hasAlpha()) {
                 bitmap.setHasAlpha(true);
             }
@@ -130,13 +146,21 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeFile (@NonNull File file, @NonNull Rect region) {
+    public static @Nullable Bitmap decodeFile(@NonNull File file) {
+        return decodeFile(file, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeFile (@NonNull File file,
+                                               @NonNull Rect region, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         BitmapRegionDecoder decoder = null;
         try {
             FileInputStream stream = new FileInputStream(file);
             decoder = BitmapRegionDecoder.newInstance(stream.getFD(), false);
-            bitmap = decoder.decodeRegion(region, null);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            options.inPreferredConfig = config;
+            bitmap = decoder.decodeRegion(region, options);
             stream.close();
         }
         catch (IOException e) {
@@ -150,7 +174,6 @@ public final class BitmapDecoder {
             }
         }
         if (bitmap != null) {
-            bitmap = BitmapUtils.setMutable(bitmap);
             if (!bitmap.hasAlpha()) {
                 bitmap.setHasAlpha(true);
             }
@@ -158,22 +181,44 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeFile (@NonNull String path) {
-        return decodeFile(new File(path));
+    public static @Nullable Bitmap decodeFile(@NonNull File file, @NonNull Rect region) {
+        return decodeFile(file, region, null);
     }
 
-    public static @Nullable Bitmap decodeFile (@NonNull String path, Rect region) {
-        return decodeFile(new File(path), region);
+    public static @Nullable Bitmap decodeFile (@NonNull String pathname,
+                                               @Nullable Bitmap.Config config) {
+        return decodeFile(new File(pathname), config);
+    }
+
+    public static @Nullable Bitmap decodeFile(@NonNull String pathname) {
+        return decodeFile(pathname, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeFile (@NonNull String pathname,
+                                               @NonNull Rect region, @Nullable Bitmap.Config config) {
+        return decodeFile(new File(pathname), region, config);
+    }
+
+    public static @Nullable Bitmap decodeFile(@NonNull String pathname, @NonNull Rect region) {
+        return decodeFile(pathname, region, null);
+    }
+
+    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data,
+                                                    @Nullable Bitmap.Config config) {
+        return decodeByteArray(data, 0, data.length, config);
     }
 
     public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data) {
-        return decodeByteArray(data, 0, data.length);
+        return decodeByteArray(data, (Bitmap.Config) null);
     }
 
-    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, int offset, int length) {
-        Bitmap bitmap = BitmapFactory.decodeByteArray(data, offset, length);
+    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, int offset, int length,
+                                                    @Nullable Bitmap.Config config) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inMutable = true;
+        options.inPreferredConfig = config;
+        Bitmap bitmap = BitmapFactory.decodeByteArray(data, offset, length, options);
         if (bitmap != null) {
-            bitmap = BitmapUtils.setMutable(bitmap);
             if (!bitmap.hasAlpha()) {
                 bitmap.setHasAlpha(true);
             }
@@ -181,17 +226,29 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, Rect region) {
-        return decodeByteArray(data, 0, data.length, region);
+    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, int offset, int length) {
+        return decodeByteArray(data, offset, length, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, @NonNull Rect region,
+                                                    @Nullable Bitmap.Config config) {
+        return decodeByteArray(data, 0, data.length, region, config);
+    }
+
+    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, @NonNull Rect region) {
+        return decodeByteArray(data, region, null);
     }
 
     public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, int offset, int length,
-                                                    @NonNull Rect region) {
+                                                    @NonNull Rect region, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         BitmapRegionDecoder decoder = null;
         try {
             decoder = BitmapRegionDecoder.newInstance(data, offset, length, false);
-            bitmap = decoder.decodeRegion(region, null);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            options.inPreferredConfig = config;
+            bitmap = decoder.decodeRegion(region, options);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -204,7 +261,6 @@ public final class BitmapDecoder {
             }
         }
         if (bitmap != null) {
-            bitmap = BitmapUtils.setMutable(bitmap);
             if (!bitmap.hasAlpha()) {
                 bitmap.setHasAlpha(true);
             }
@@ -212,11 +268,17 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeAsset (@NonNull String fileName) {
+    public static @Nullable Bitmap decodeByteArray (@NonNull byte[] data, int offset, int length,
+                                                    @NonNull Rect region) {
+        return decodeByteArray(data, offset, length, region, null);
+    }
+
+    public static @Nullable Bitmap decodeAsset (@NonNull String asset,
+                                                @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         AssetManager assets = ApplicationUtils.getAssets();
         try {
-            bitmap = decodeStream(assets.open(fileName));
+            bitmap = decodeStream(assets.open(asset), config);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -224,11 +286,16 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeAsset (@NonNull String fileName, Rect region) {
+    public static @Nullable Bitmap decodeAsset (@NonNull String asset) {
+        return decodeAsset(asset, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeAsset (@NonNull String asset,
+                                                @NonNull Rect region, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         AssetManager assets = ApplicationUtils.getApplication().getAssets();
         try {
-            bitmap = decodeStream(assets.open(fileName), region);
+            bitmap = decodeStream(assets.open(asset), region, config);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -236,44 +303,60 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeResource (int resId) {
+    public static @Nullable Bitmap decodeAsset (@NonNull String asset, @NonNull Rect region) {
+        return decodeAsset(asset, region, null);
+    }
+
+    public static @Nullable Bitmap decodeResource (int resId, @Nullable Bitmap.Config config) {
         Bitmap bitmap;
         Resources res = ApplicationUtils.getApplication().getResources();
         try {
-            bitmap = decodeStream(res.openRawResource(resId));
+            bitmap = decodeStream(res.openRawResource(resId), config);
         }
         catch (Resources.NotFoundException e) {
-            bitmap = BitmapFactory.decodeResource(res, resId);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inMutable = true;
+            options.inPreferredConfig = config;
+            bitmap = BitmapFactory.decodeResource(res, resId, options);
             if (bitmap == null) {
                 Drawable drawable = ContextCompat.getDrawable(ApplicationUtils.getApplication(), resId);
                 if (drawable != null) {
-                    bitmap = decodeDrawable(drawable);
+                    bitmap = decodeDrawable(drawable, config);
                 }
             }
         }
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeResource (int resId, Rect region) {
+    public static @Nullable Bitmap decodeResource (int resId) {
+        return decodeResource(resId, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeResource (int resId, @NonNull Rect region,
+                                                   @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         Resources res = ApplicationUtils.getApplication().getResources();
         try {
-            bitmap = decodeStream(res.openRawResource(resId), region);
+            bitmap = decodeStream(res.openRawResource(resId), region, config);
         }
         catch (Resources.NotFoundException e) {
             Drawable drawable = ContextCompat.getDrawable(ApplicationUtils.getApplication(), resId);
             if (drawable != null) {
-                bitmap = decodeDrawable(drawable, region);
+                bitmap = decodeDrawable(drawable, region, config);
             }
         }
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeDrawable (@NonNull Drawable drawable) {
+    public static @Nullable Bitmap decodeResource (int resId, @NonNull Rect region) {
+        return decodeResource(resId, region, null);
+    }
+
+    public static @Nullable Bitmap decodeDrawable (@NonNull Drawable drawable,
+                                                   @Nullable Bitmap.Config config) {
         if (drawable instanceof BitmapDrawable) {
             Bitmap bitmap = ((BitmapDrawable)drawable).getBitmap();
             if (bitmap != null) {
-                bitmap = BitmapUtils.setMutable(bitmap);
                 if (!bitmap.hasAlpha()) {
                     bitmap.setHasAlpha(true);
                 }
@@ -288,7 +371,9 @@ public final class BitmapDecoder {
                 Bitmap bitmap = Bitmap.createBitmap(
                         drawable.getIntrinsicWidth(),
                         drawable.getIntrinsicHeight(),
-                        drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
+                        config == null ? (
+                                drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565) :
+                                config);
                 Canvas canvas = new Canvas(bitmap);
                 drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
                 drawable.draw(canvas);
@@ -297,7 +382,12 @@ public final class BitmapDecoder {
         }
     }
 
-    public static @Nullable Bitmap decodeDrawable (@NonNull Drawable drawable, @NonNull Rect region) {
+    public static @Nullable Bitmap decodeDrawable (@NonNull Drawable drawable) {
+        return decodeDrawable(drawable, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeDrawable (@NonNull Drawable drawable,
+                                                   @NonNull Rect region, @Nullable Bitmap.Config config) {
         if (drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
             return null;
         }
@@ -305,7 +395,9 @@ public final class BitmapDecoder {
             Bitmap bitmap = Bitmap.createBitmap(
                     region.width(),
                     region.height(),
-                    drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565);
+                    config == null ? (
+                            drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565) :
+                            config);
             Canvas canvas = new Canvas(bitmap);
             drawable.setBounds(region.left, region.top, canvas.getWidth(), canvas.getHeight());
             drawable.draw(canvas);
@@ -313,13 +405,37 @@ public final class BitmapDecoder {
         }
     }
 
-    public static @Nullable Bitmap decodeUri (@NonNull Uri uri) {
+    public static @Nullable Bitmap decodeDrawable (@NonNull Drawable drawable, @NonNull Rect region) {
+        return decodeDrawable(drawable, region, null);
+    }
+
+    public static @Nullable Bitmap decodeUri (@NonNull Uri uri, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         ContentResolver resolver = ApplicationUtils.getApplication().getContentResolver();
         try {
             InputStream stream = resolver.openInputStream(uri);
             if (stream != null) {
-                bitmap = decodeStream(stream);
+                bitmap = decodeStream(stream, config);
+            }
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return bitmap;
+    }
+
+    public static @Nullable Bitmap decodeUri (@NonNull Uri uri) {
+        return decodeUri(uri, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeUri (@NonNull Uri uri, @NonNull Rect region,
+                                              @Nullable Bitmap.Config config) {
+        Bitmap bitmap = null;
+        ContentResolver resolver = ApplicationUtils.getApplication().getContentResolver();
+        try {
+            InputStream stream = resolver.openInputStream(uri);
+            if (stream != null) {
+                bitmap = decodeStream(stream, region, config);
             }
         }
         catch (FileNotFoundException e) {
@@ -329,24 +445,29 @@ public final class BitmapDecoder {
     }
 
     public static @Nullable Bitmap decodeUri (@NonNull Uri uri, @NonNull Rect region) {
+        return decodeUri(uri, region, null);
+    }
+
+    public static @Nullable Bitmap decodeURI (@NonNull URI uri, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
-        ContentResolver resolver = ApplicationUtils.getApplication().getContentResolver();
         try {
-            InputStream stream = resolver.openInputStream(uri);
-            if (stream != null) {
-                bitmap = decodeStream(stream, region);
-            }
+            bitmap = decodeURL(uri.toURL(), config);
         }
-        catch (FileNotFoundException e) {
+        catch (MalformedURLException e) {
             e.printStackTrace();
         }
         return bitmap;
     }
 
     public static @Nullable Bitmap decodeURI (@NonNull URI uri) {
+        return decodeURI(uri, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeURI (@NonNull URI uri, @NonNull Rect region,
+                                              @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         try {
-            bitmap = decodeURL(uri.toURL());
+            bitmap = decodeURL(uri.toURL(), region, config);
         }
         catch (MalformedURLException e) {
             e.printStackTrace();
@@ -354,21 +475,30 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeURI (@NonNull URI uri, Rect region) {
+    public static @Nullable Bitmap decodeURI (@NonNull URI uri, @NonNull Rect region) {
+        return decodeURI(uri, region, null);
+    }
+
+    public static @Nullable Bitmap decodeURL (@NonNull URL url, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         try {
-            bitmap = decodeURL(uri.toURL(), region);
+            bitmap = decodeStream(url.openStream(), config);
         }
-        catch (MalformedURLException e) {
+        catch (IOException e) {
             e.printStackTrace();
         }
         return bitmap;
     }
 
     public static @Nullable Bitmap decodeURL (@NonNull URL url) {
+        return decodeURL(url, (Bitmap.Config) null);
+    }
+
+    public static @Nullable Bitmap decodeURL (@NonNull URL url, @NonNull Rect region,
+                                              @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
         try {
-            bitmap = decodeStream(url.openStream());
+            bitmap = decodeStream(url.openStream(), region, config);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -376,15 +506,8 @@ public final class BitmapDecoder {
         return bitmap;
     }
 
-    public static @Nullable Bitmap decodeURL (@NonNull URL url, Rect region) {
-        Bitmap bitmap = null;
-        try {
-            bitmap = decodeStream(url.openStream(), region);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        return bitmap;
+    public static @Nullable Bitmap decodeURL (@NonNull URL url, @NonNull Rect region) {
+        return decodeURL(url, region, null);
     }
 
 }

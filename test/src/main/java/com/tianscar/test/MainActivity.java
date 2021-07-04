@@ -34,6 +34,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import com.tianscar.quickbitmap.BitmapChanger;
+import com.tianscar.quickbitmap.BitmapDecoder;
 
 public class MainActivity extends AppCompatActivity {
 
