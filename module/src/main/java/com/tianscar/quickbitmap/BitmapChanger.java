@@ -39,7 +39,7 @@ import androidx.annotation.NonNull;
 
 import com.tianscar.androidutils.MathUtils;
 
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A factory class providing functions to change bitmap.
@@ -51,7 +51,8 @@ public final class BitmapChanger {
     private final Paint paint;
     private final Path path;
     private final Matrix matrix;
-    private final ReentrantReadWriteLock readWriteLock;
+    private final ReentrantLock lock;
+    private boolean changed;
 
     /**
      * Create a copy bitmap for change and do not modify the source.
@@ -97,7 +98,7 @@ public final class BitmapChanger {
         canvas = new Canvas();
         path = new Path();
         matrix = new Matrix();
-        readWriteLock = new ReentrantReadWriteLock(true);
+        lock = new ReentrantLock(true);
     }
 
     public BitmapChanger wrap(@NonNull Bitmap src) {
@@ -108,7 +109,7 @@ public final class BitmapChanger {
         if (!src.isMutable()) {
             throw new IllegalArgumentException("Unable to change immutable bitmap.");
         }
-        readWriteLock.writeLock().lock();
+        lock.lock();
         try {
             if (isCopy) {
                 dst = Bitmap.createBitmap(src);
@@ -116,9 +117,10 @@ public final class BitmapChanger {
             else {
                 dst = src;
             }
+            changed = false;
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
     }
@@ -131,12 +133,13 @@ public final class BitmapChanger {
         if (!src.isMutable()) {
             throw new IllegalArgumentException("Unable to change immutable bitmap.");
         }
-        readWriteLock.writeLock().lock();
+        lock.lock();
         try {
             dst = Bitmap.createBitmap(src, x, y, width, height);
+            changed = false;
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
     }
@@ -152,13 +155,14 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger cut (int x, int y, int width, int height, boolean outBounds) {
+        checkChanged();
         if (width <= 0) {
             throw new IllegalArgumentException("Width must be > 0");
         }
         if (height <= 0) {
             throw new IllegalArgumentException("Height must be > 0");
         }
-        readWriteLock.writeLock().lock();
+        lock.lock();
         try {
             int originalWidth = dst.getWidth();
             int originalHeight = dst.getHeight();
@@ -172,7 +176,13 @@ public final class BitmapChanger {
                 return this;
             }
             if (outBounds) {
-                Bitmap temp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Bitmap temp;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    temp = Bitmap.createBitmap(width, height, dst.getConfig(), dst.hasAlpha(), dst.getColorSpace());
+                }
+                else {
+                    temp = Bitmap.createBitmap(width, height, dst.getConfig());
+                }
                 if (beginX >= originalWidth || beginY >= originalHeight || endX < 0 || endY < 0) {
                     replaceDst(temp);
                     return this;
@@ -217,7 +227,7 @@ public final class BitmapChanger {
             }
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
     }
@@ -237,6 +247,7 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger crop (int left, int top, int right, int bottom, boolean outBounds) {
+        checkChanged();
         right = right - 1;
         bottom = bottom - 1;
         int x = Math.min(left, right);
@@ -292,10 +303,17 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger clipPath (@NonNull Path path) {
-        readWriteLock.writeLock().lock();
+        checkChanged();
+        lock.lock();
         try {
-            Bitmap temp = Bitmap.createBitmap(dst.getWidth(), dst.getHeight(),
-                    Bitmap.Config.ARGB_8888);
+            Bitmap temp;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                temp = Bitmap.createBitmap(dst.getWidth(), dst.getHeight(),
+                        dst.getConfig(), dst.hasAlpha(), dst.getColorSpace());
+            }
+            else {
+                temp = Bitmap.createBitmap(dst.getWidth(), dst.getHeight(), dst.getConfig());
+            }
             canvas.setBitmap(temp);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 canvas.clipPath(path);
@@ -307,7 +325,7 @@ public final class BitmapChanger {
             replaceDst(temp);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
     }
@@ -320,13 +338,14 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger clipOval () {
-        readWriteLock.writeLock().lock();
+        checkChanged();
+        lock.lock();
         try {
             path.reset();
             path.addOval(new RectF(0, 0, dst.getWidth(), dst.getHeight()), Path.Direction.CW);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return clipPath(path);
     }
@@ -341,13 +360,14 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger clipRoundRect (float radiusX, float radiusY) {
-        readWriteLock.writeLock().lock();
+        checkChanged();
+        lock.lock();
         try {
             path.reset();
             path.addRoundRect(new RectF(0, 0, dst.getWidth(), dst.getHeight()), radiusX, radiusY, Path.Direction.CW);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return clipPath(path);
     }
@@ -361,13 +381,14 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger clipRoundRect (float[] radii) {
-        readWriteLock.writeLock().lock();
+        checkChanged();
+        lock.lock();
         try {
             path.reset();
             path.addRoundRect(new RectF(0, 0, dst.getWidth(), dst.getHeight()), radii, Path.Direction.CW);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return clipPath(path);
     }
@@ -376,37 +397,49 @@ public final class BitmapChanger {
      * Use matrix to change the bitmap.
      *
      * @param matrix the matrix for change
+     * @param filter use filter
      * @return BitmapChanger the current instance
      */
-    public BitmapChanger matrixChange(@NonNull Matrix matrix) {
-        readWriteLock.writeLock().lock();
+    public BitmapChanger matrixChange(@NonNull Matrix matrix, boolean filter) {
+        checkChanged();
+        lock.lock();
         try {
-            replaceDst(Bitmap.createBitmap(dst, 0, 0, dst.getWidth(), dst.getHeight(), matrix, false));
+            replaceDst(Bitmap.createBitmap(dst, 0, 0, dst.getWidth(), dst.getHeight(), matrix, filter));
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
     }
 
+    public BitmapChanger matrixChange(@NonNull Matrix matrix) {
+        return matrixChange(matrix, false);
+    }
+
     /**
      * Rotate the bitmap.
      *
      * @see BitmapChanger matrixChange(Matrix)
      *
      * @param degrees the degrees
+     * @param filter use filter
      * @return BitmapChanger the current instance
      */
+    public BitmapChanger rotateDegrees (int degrees, boolean filter) {
+        checkChanged();
+        lock.lock();
+        try {
+            matrix.reset();
+            matrix.setRotate(degrees, dst.getWidth() * 0.5f, dst.getHeight() * 0.5f);
+        }
+        finally {
+            lock.unlock();
+        }
+        return matrixChange(matrix, filter);
+    }
+
     public BitmapChanger rotateDegrees (int degrees) {
-        readWriteLock.writeLock().lock();
-        try {
-            matrix.reset();
-            matrix.setRotate(degrees, dst.getWidth() * 0.5f, dst.getHeight() * 0.5f);
-        }
-        finally {
-            readWriteLock.writeLock().unlock();
-        }
-        return matrixChange(matrix);
+        return rotateDegrees(degrees, false);
     }
 
     /**
@@ -415,18 +448,24 @@ public final class BitmapChanger {
      * @see BitmapChanger matrixChange(Matrix)
      *
      * @param degrees the degrees
+     * @param filter use filter
      * @return BitmapChanger the current instance
      */
-    public BitmapChanger rotateDegrees (float degrees) {
-        readWriteLock.writeLock().lock();
+    public BitmapChanger rotateDegrees (float degrees, boolean filter) {
+        checkChanged();
+        lock.lock();
         try {
             matrix.reset();
             matrix.setRotate(degrees, dst.getWidth() * 0.5f, dst.getHeight() * 0.5f);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
-        return matrixChange(matrix);
+        return matrixChange(matrix, filter);
+    }
+
+    public BitmapChanger rotateDegrees (float degrees) {
+        return rotateDegrees(degrees, false);
     }
 
     /**
@@ -435,10 +474,15 @@ public final class BitmapChanger {
      * @see BitmapChanger matrixChange(Matrix)
      *
      * @param radians the radians
+     * @param filter use filter
      * @return BitmapChanger the current instance
      */
+    public BitmapChanger rotateRadians (int radians, boolean filter) {
+        return rotateDegrees(MathUtils.rad2deg(radians), filter);
+    }
+
     public BitmapChanger rotateRadians (int radians) {
-        return rotateDegrees(MathUtils.rad2deg(radians));
+        return rotateRadians(radians, false);
     }
 
     /**
@@ -447,10 +491,15 @@ public final class BitmapChanger {
      * @see BitmapChanger matrixChange(Matrix)
      *
      * @param radians the radians
+     * @param filter use filter
      * @return BitmapChanger the current instance
      */
+    public BitmapChanger rotateRadians (float radians, boolean filter) {
+        return rotateDegrees(MathUtils.rad2deg(radians), filter);
+    }
+
     public BitmapChanger rotateRadians (float radians) {
-        return rotateDegrees(MathUtils.rad2deg(radians));
+        return rotateRadians(radians, false);
     }
 
     /**
@@ -461,13 +510,14 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger flipHorizontally () {
-        readWriteLock.writeLock().lock();
+        checkChanged();
+        lock.lock();
         try {
             matrix.reset();
             matrix.postScale(-1, 1);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return matrixChange(matrix);
     }
@@ -480,13 +530,14 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger flipVertically () {
-        readWriteLock.writeLock().lock();
+        checkChanged();
+        lock.lock();
         try {
             matrix.reset();
             matrix.postScale(1, -1);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return matrixChange(matrix);
     }
@@ -502,21 +553,22 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger scale (float scaleX, float scaleY, boolean filter) {
+        checkChanged();
         if (scaleX <= 0) {
             throw new IllegalArgumentException("ScaleX must be > 0");
         }
         if (scaleY <= 0) {
             throw new IllegalArgumentException("ScaleY must be > 0");
         }
-        readWriteLock.writeLock().lock();
+        lock.lock();
         try {
             matrix.reset();
             matrix.postScale(scaleX, scaleY);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
-        return matrixChange(matrix);
+        return matrixChange(matrix, filter);
     }
 
     public BitmapChanger scale (float scaleX, float scaleY) {
@@ -583,18 +635,19 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger resize (int width, int height, boolean filter) {
+        checkChanged();
         if (width <= 0) {
             throw new IllegalArgumentException("Width must be > 0");
         }
         if (height <= 0) {
             throw new IllegalArgumentException("Height must be > 0");
         }
-        readWriteLock.writeLock().lock();
+        lock.lock();
         try {
             replaceDst(Bitmap.createScaledBitmap(dst, width, height, filter));
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
     }
@@ -644,6 +697,14 @@ public final class BitmapChanger {
      */
     @NonNull
     public Bitmap change () {
+        checkChanged();
+        lock.lock();
+        try {
+            changed = true;
+        }
+        finally {
+            lock.unlock();
+        }
         return dst;
     }
 
@@ -665,19 +726,27 @@ public final class BitmapChanger {
      * @return BitmapChanger the current instance
      */
     public BitmapChanger fill (int x, int y, int color) {
+        checkChanged();
         switch (dst.getConfig()) {
             case HARDWARE:
             case RGBA_F16:
                 throw new IllegalArgumentException("Unsupported bitmap config.");
         }
-        readWriteLock.writeLock().lock();
+        lock.lock();
         try {
             NativeMethods.fill(dst, x, y, color);
         }
         finally {
-            readWriteLock.writeLock().unlock();
+            lock.unlock();
         }
         return this;
+    }
+
+    private void checkChanged() {
+        if (changed) {
+            throw new IllegalStateException("The current instance is unavailable, " +
+                    "please re-wrap a bitmap or create a new instance for use.");
+        }
     }
 
 }

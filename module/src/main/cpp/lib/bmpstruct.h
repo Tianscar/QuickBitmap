@@ -25,40 +25,36 @@
 
 #include <sys/types.h>
 
-#ifndef QUICKBITMAP_BITMAPUTIL_H
-#define QUICKBITMAP_BITMAPUTIL_H
+#ifndef QUICKBITMAP_BMPSTRUCT_H
+#define QUICKBITMAP_BMPSTRUCT_H
 
-#define RGB565_RED      0x0000F800u
-#define RGB565_GREEN    0x000007E0u
-#define RGB565_BLUE     0x0000001Fu
+struct {
+    uint16_t bfType = 0x4D42;
+    uint32_t bfSize;
+    uint16_t bfReversed1 = 0;
+    uint16_t bfReversed2 = 0;
+    uint32_t bfOffBits = 54;
+} BITMAPFILEHEADER;
 
-typedef struct {
-    uint32_t x;
-    uint32_t y;
-} point;
+struct {
+    uint32_t biSize = 40;
+    uint32_t biWidth;
+    uint32_t biHeight;
+    uint16_t biPlanes = 1;
+    uint16_t biBitCount;
+    uint32_t biCompression = 0;
+    uint32_t biSizeImage;
+    uint32_t biXPelsPerMeter = 3780;
+    uint32_t biYPelsPerMeter = 3780;
+    uint32_t biClrUsed = 0;
+    uint32_t biClrImportant = 0;
+} BITMAPINFOHEADER;
 
-template<typename color_t>
-color_t get_pixel(color_t* pixel_arr, uint32_t x, uint32_t y, uint32_t width) {
-    return pixel_arr[y * width + x];
-}
-
-template<typename color_t>
-void set_pixel(color_t* pixel_arr, uint32_t x, uint32_t y, color_t color, uint32_t width) {
-    pixel_arr[y * width + x] = color;
-}
-
-uint32_t argb2abgr(uint32_t);
-
-uint16_t argb2rgb565(uint32_t);
-
-uint32_t rgb565_2argb(uint16_t);
-
-u_char argb_alpha(uint32_t);
-
-u_char argb_red(uint32_t);
-
-u_char argb_green(uint32_t);
-
-u_char argb_blue(uint32_t);
+struct {
+    u_char rgbBlue;
+    u_char rgbGreen;
+    u_char rgbRed;
+    u_char rgbReversed;
+} RGBQUAD;
 
 #endif

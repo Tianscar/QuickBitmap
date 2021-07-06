@@ -25,7 +25,6 @@
 
 #include "com_tianscar_quickbitmap_NativeMethods.h"
 #include <android/bitmap.h>
-#include "bitmaputil.h"
 #include "fill.h"
 
 uint32_t jint2uint(jint value) {
@@ -61,13 +60,13 @@ JNIEXPORT void JNICALL Java_com_tianscar_quickbitmap_NativeMethods_nativeFill
     }
     switch (bitmap_format) {
         case ANDROID_BITMAP_FORMAT_A_8:
-            fill_alpha8((u_char *) addr_ptr, x, y, argb_alpha(jint2uint(color)), bitmap_width, bitmap_height);
+            fill((u_char *) addr_ptr, x, y, argb_alpha(jint2uint(color)), bitmap_width, bitmap_height);
             break;
         case ANDROID_BITMAP_FORMAT_RGBA_8888:
-            fill_abgr((uint32_t *) addr_ptr, x, y, argb2abgr(jint2uint(color)), bitmap_width, bitmap_height);
+            fill((uint32_t *) addr_ptr, x, y, argb2abgr(jint2uint(color)), bitmap_width, bitmap_height);
             break;
         case ANDROID_BITMAP_FORMAT_RGB_565:
-            fill_rgb565((uint16_t *) addr_ptr, x, y, argb2rgb565(jint2uint(color)), bitmap_width, bitmap_height);
+            fill((uint16_t *) addr_ptr, x, y, argb2rgb565(jint2uint(color)), bitmap_width, bitmap_height);
             break;
         default:
             break;

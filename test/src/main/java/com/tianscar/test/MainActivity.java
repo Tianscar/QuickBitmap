@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        final Bitmap[] bitmap = {Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)};
+        final Bitmap[] bitmap = {Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)};
         bitmap[0].setPixel(0, 0, Color.BLACK);
         /*
         bitmap.setPixel(0, 1, Color.BLUE);
@@ -54,27 +54,31 @@ public class MainActivity extends AppCompatActivity {
         Bitmap bitmap1 = Bitmap.createBitmap(bitmap[0]);
         long time1 = System.currentTimeMillis();
         BitmapChanger bitmapChanger = new BitmapChanger();
-        bitmap[0] = bitmapChanger.wrap(bitmap[0], false).fill(100, 100, Color.YELLOW).change();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                bitmap[0] = bitmapChanger.clipOval().change();
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                bitmap[0] = bitmapChanger.clipRoundRect(50f, 50f).
-                        resize(1000, 1300, false).rotateDegrees(45).change();
-            }
-        }).start();
+        ImageView imageView = new ImageView(this);
+        try {
+            bitmapChanger.wrap(bitmap[0], false).fill(555, 550, Color.YELLOW);
+        }
+        finally {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bitmap[0] = bitmapChanger.clipRoundRect(50f, 50f).clipOval().
+                            resize(1000, 1300, false).rotateDegrees(45, true).change();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            imageView.setImageBitmap(bitmap[0]);
+                        }
+                    });
+                }
+            }).start();
+        }
         time1 = System.currentTimeMillis() - time1;
         long time2 = System.currentTimeMillis();
         bitmap1 = new BitmapChanger(bitmap1, false).fill(1, 1, Color.BLUE).change();
         time2 = System.currentTimeMillis() - time2;
         Log.e("233", "time1: "+time1+" | "+"time2: "+time2);
-        ImageView imageView = new ImageView(this);
+
         setContentView(imageView);
-        imageView.setImageBitmap(bitmap[0]);
     }
 }

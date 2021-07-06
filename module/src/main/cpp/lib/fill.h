@@ -24,14 +24,86 @@
  */
 
 #include <sys/types.h>
+#include <stack>
+#include "bitmaputil.h"
 
 #ifndef QUICKBITMAP_FILL_H
 #define QUICKBITMAP_FILL_H
 
-void fill_abgr(uint32_t*, uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+using namespace std;
 
-void fill_rgb565(uint16_t*, uint32_t, uint32_t, uint16_t, uint32_t, uint32_t);
-
-void fill_alpha8(u_char*, uint32_t, uint32_t, u_char , uint32_t, uint32_t);
+template<typename color_t>
+void fill(color_t* pixel_arr, uint32_t x, uint32_t y, color_t color,
+          uint32_t bitmap_width, uint32_t bitmap_height) {
+    stack<point> point_stack;
+    point seed;
+    if (get_pixel(pixel_arr, x, y, bitmap_width) != color) {
+        point_stack.push(point{x, y});
+    }
+    while (!point_stack.empty()) {
+        seed = point_stack.top();
+        point_stack.pop();
+        color_t old_color = get_pixel(pixel_arr, seed.x, seed.y, bitmap_width);
+        uint32_t x_l = seed.x;
+        uint32_t x_r = seed.x;
+        if (old_color != color) {
+            while (x_l >= 1) {
+                if (get_pixel(pixel_arr, x_l - 1u, seed.y, bitmap_width) != old_color) {
+                    break;
+                }
+                x_l -= 1u;
+            }
+            while (x_r + 1 < bitmap_width) {
+                if (get_pixel(pixel_arr, x_r + 1, seed.y, bitmap_width) != old_color) {
+                    break;
+                }
+                x_r ++;
+            }
+            for (uint32_t detect_x = x_l; detect_x <= x_r; detect_x ++) {
+                if (seed.y + 1 < bitmap_height) {
+                    if (get_pixel(pixel_arr, detect_x, seed.y + 1, bitmap_width) ==
+                        old_color) {
+                        if (detect_x < x_r) {
+                            if (get_pixel(pixel_arr, detect_x + 1, seed.y + 1,
+                                          bitmap_width) != old_color) {
+                                point_stack.push(point{detect_x, seed.y + 1});
+                            }
+                        }
+                        else {
+                            point_stack.push(point{detect_x, seed.y + 1});
+                        }
+                    }
+                }
+                if (seed.y >= 1) {
+                    if (get_pixel(pixel_arr, detect_x, seed.y - 1u, bitmap_width) ==
+                        old_color) {
+                        if (detect_x < x_r) {
+                            if (get_pixel(pixel_arr, detect_x + 1, seed.y - 1u,
+                                          bitmap_width) != old_color) {
+                                point_stack.push(point{detect_x, seed.y - 1u});
+                            }
+                        }
+                        else {
+                            point_stack.push(point{detect_x, seed.y - 1u});
+                        }
+                    }
+                }
+            }
+            uint32_t r_x = seed.x + 1;
+            if (r_x < bitmap_width) {
+                while (get_pixel(pixel_arr, r_x, seed.y, bitmap_width) == old_color) {
+                    set_pixel(pixel_arr, r_x, seed.y, color, bitmap_width);
+                    if (r_x == bitmap_width - 1u) break;
+                    r_x ++;
+                }
+            }
+            while (get_pixel(pixel_arr, seed.x, seed.y, bitmap_width) == old_color) {
+                set_pixel(pixel_arr, seed.x, seed.y, color, bitmap_width);
+                if (seed.x == 0u) break;
+                seed.x-= 1u;
+            }
+        }
+    }
+}
 
 #endif

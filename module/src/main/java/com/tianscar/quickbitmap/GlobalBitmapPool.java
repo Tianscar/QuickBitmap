@@ -48,14 +48,14 @@ public final class GlobalBitmapPool {
 
     private GlobalBitmapPool() {
         mReadWriteLock = new ReentrantReadWriteLock(true);
-        setBitmapPool(new BitmapPool());
+        wrap(new BitmapPool());
     }
 
     private static GlobalBitmapPool getInstance() {
         return Singleton.INSTANCE.getInstance();
     }
 
-    public static void setBitmapPool(@NonNull BitmapPool bitmapPool) {
+    public static void wrap(@NonNull BitmapPool bitmapPool) {
         getInstance().mReadWriteLock.writeLock().lock();
         try {
             getInstance().mBitmapPool = bitmapPool;
@@ -66,7 +66,7 @@ public final class GlobalBitmapPool {
     }
 
     @NonNull
-    public static BitmapPool getBitmapPool() {
+    public static BitmapPool get() {
         BitmapPool result;
         getInstance().mReadWriteLock.readLock().lock();
         try {

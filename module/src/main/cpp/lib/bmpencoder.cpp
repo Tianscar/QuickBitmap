@@ -24,3 +24,4 @@
  */
 
 #include "bmpencoder.h"
+#include "bmpstruct.h"

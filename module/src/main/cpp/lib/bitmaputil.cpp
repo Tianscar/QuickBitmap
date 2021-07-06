@@ -25,36 +25,6 @@
 
 #include "bitmaputil.h"
 
-uint32_t get_pixel_abgr(uint32_t* pixel_arr, uint32_t x, uint32_t y,
-                   uint32_t width) {
-    return pixel_arr[y * width + x];
-}
-
-void set_pixel_abgr(uint32_t* pixel_arr, uint32_t x, uint32_t y, uint32_t color,
-               uint32_t width) {
-    pixel_arr[y * width + x] = color;
-}
-
-uint16_t get_pixel_rgb565(uint16_t* pixel_arr, uint32_t x, uint32_t y,
-                          uint32_t width) {
-    return pixel_arr[y * width + x];
-}
-
-void set_pixel_rgb565(uint16_t* pixel_arr, uint32_t x, uint32_t y, uint16_t color,
-                      uint32_t width) {
-    pixel_arr[y * width + x] = color;
-}
-
-u_char get_pixel_alpha8(u_char * pixel_arr, uint32_t x, uint32_t y,
-                        uint32_t width) {
-    return pixel_arr[y * width + x];
-}
-
-void set_pixel_alpha8(u_char * pixel_arr, uint32_t x, uint32_t y, u_char color,
-                      uint32_t width) {
-    pixel_arr[y * width + x] = color;
-}
-
 uint32_t argb2abgr(uint32_t color) {
     return (argb_alpha(color) & 0xFFu) << 24u | (argb_blue(color) & 0xFFu) << 16u |
     (argb_green(color) & 0xFFu) << 8u | (argb_red(color) & 0xFFu);
