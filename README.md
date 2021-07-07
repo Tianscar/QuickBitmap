@@ -1,5 +1,5 @@
-# QuickBitmap
 [**转到中文**](https://github.com/Tianscar/QuickBitmap/blob/master/README-zh_CN.md)
+# QuickBitmap
 
 **An android-bitmap toolkit provides some useful functions e.g.**
 * **BitmapPool**<br/>
