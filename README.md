@@ -1,6 +1,6 @@
 # QuickBitmap
 
-### An android-bitmap toolkit provides some useful functions e.g.
+**An android-bitmap toolkit provides some useful functions e.g.**
 * **BitmapPool**<br/>
 Based on LruCache and DiskLruCache (https://github.com/JakeWharton/DiskLruCache).
 * **BitmapEncoder/Decoder**<br/>
