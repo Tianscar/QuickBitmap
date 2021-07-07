@@ -23,5 +23,24 @@
  *
  */
 
-rootProject.name = "QuickBitmap"
-include ':library'
+package com.tianscar.quickbitmap;
+
+import android.graphics.Bitmap;
+
+import androidx.annotation.NonNull;
+
+final class NativeMethods {
+
+    static {
+        System.loadLibrary("quickbitmap");
+    }
+
+    private NativeMethods(){}
+
+    public static void fill(@NonNull Bitmap bitmap, int x, int y, int color) {
+        nativeFill(bitmap, x, y, color);
+    }
+
+    private static native void nativeFill(Bitmap bitmap, int x, int y, int color);
+
+}

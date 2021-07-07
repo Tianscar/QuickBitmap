@@ -23,5 +23,36 @@
  *
  */
 
-rootProject.name = "QuickBitmap"
-include ':library'
+#include <sys/types.h>
+
+#ifndef QUICKBITMAP_BITMAPUTIL_H
+#define QUICKBITMAP_BITMAPUTIL_H
+
+typedef struct {
+    uint32_t x;
+    uint32_t y;
+} point;
+
+template<typename color_t>
+color_t get_pixel(color_t* pixel_arr, uint32_t x, uint32_t y, uint32_t width) {
+    return pixel_arr[y * width + x];
+}
+
+template<typename color_t>
+void set_pixel(color_t* pixel_arr, uint32_t x, uint32_t y, color_t color, uint32_t width) {
+    pixel_arr[y * width + x] = color;
+}
+
+uint32_t argb2abgr(uint32_t);
+
+uint16_t argb2rgb565(uint32_t);
+
+u_char argb_alpha(uint32_t);
+
+u_char argb_red(uint32_t);
+
+u_char argb_green(uint32_t);
+
+u_char argb_blue(uint32_t);
+
+#endif

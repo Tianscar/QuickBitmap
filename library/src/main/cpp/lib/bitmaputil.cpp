@@ -23,5 +23,30 @@
  *
  */
 
-rootProject.name = "QuickBitmap"
-include ':library'
+#include "bitmaputil.h"
+
+uint32_t argb2abgr(uint32_t color) {
+    return (argb_alpha(color) & 0xFFu) << 24u | (argb_blue(color) & 0xFFu) << 16u |
+    (argb_green(color) & 0xFFu) << 8u | (argb_red(color) & 0xFFu);
+}
+
+uint16_t argb2rgb565(uint32_t color) {
+    return (argb_red(color) & 0x1Fu) << 11u |
+    (argb_green(color) & 0x3Fu) << 5u | (argb_blue(color) & 0x1Fu);
+}
+
+u_char argb_alpha(uint32_t color) {
+    return color >> 24u;
+}
+
+u_char argb_red(uint32_t color) {
+    return color >> 16u;
+}
+
+u_char argb_green(uint32_t color) {
+    return color >> 8u;
+}
+
+u_char argb_blue(uint32_t color) {
+    return color;
+}
