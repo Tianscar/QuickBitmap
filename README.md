@@ -1,6 +1,13 @@
 # QuickBitmap
 
-A simple android-bitmap toolkit.
+### An android-bitmap toolkit provides some useful functions e.g.
+* **BitmapPool**<br/>
+Based on LruCache and DiskLruCache (https://github.com/JakeWharton/DiskLruCache).
+* **BitmapEncoder/Decoder**<br/>
+Supports PNG, JPEG, BMP, WEBP.
+* **BitmapChanger**<br/>
+Can clip, zoom, flip, rotate, seed filling bitmap and so on.
+Seed filling function using C/C++ to achieve, efficiency is guaranteed.
 
 # To get a Git project into your build (gradle):
 
