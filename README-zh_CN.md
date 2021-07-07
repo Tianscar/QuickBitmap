@@ -12,7 +12,7 @@ Bitmap转换器，可以对Bitmap进行裁剪、缩放、翻转、旋转、填�
 # 在项目中添加Git依赖 (gradle)：
 
 * 第一步：将JitPack储存库添加到构建文件中<br/>
-将下图链接添加到项目根目录build.gradle仓库列表的末尾：<br/>
+将下图链接添加到项目根目录build.gradle储存库列表的末尾：<br/>
 ```
 allprojects {
         repositories {
