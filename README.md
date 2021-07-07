@@ -2,7 +2,7 @@
 
 **An android-bitmap toolkit provides some useful functions e.g.**
 * **BitmapPool**<br/>
-Based on LruCache and DiskLruCache (https://github.com/JakeWharton/DiskLruCache).
+Cache pool for Bitmap. Based on LruCache and [DiskLruCache](https://github.com/JakeWharton/DiskLruCache).
 * **BitmapEncoder/Decoder**<br/>
 Supports PNG, JPEG, BMP, WEBP.
 * **BitmapChanger**<br/>
