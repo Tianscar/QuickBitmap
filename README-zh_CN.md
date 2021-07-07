@@ -6,8 +6,8 @@
 * **BitmapEncoder/Decoder**<br/>
 Bitmap编/解码器。支持PNG、JPEG、BMP、WEBP格式。
 * **BitmapChanger**<br/>
-Bitmap转换器。可以剪辑、缩放、翻转、旋转、种子填充位图等。
-种子填充算法使用C/C++实现，效率得到保证。
+Bitmap转换器。可以剪辑、缩放、翻转、旋转、种子填充位图等。<br/>
+种子填充算法使用C/C++实现，性能得到保证。
 
 # 在项目中添加Git依赖 (gradle)：
 
