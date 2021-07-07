@@ -1,5 +1,7 @@
 # QuickBitmap
 
+[中文](https://github.com/Tianscar/QuickBitmap/blob/master/README-zh_CN.md)
+
 **An android-bitmap toolkit provides some useful functions e.g.**
 * **BitmapPool**<br/>
 Cache pool for Bitmap. Based on LruCache and [DiskLruCache](https://github.com/JakeWharton/DiskLruCache).
