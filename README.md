@@ -6,7 +6,7 @@ Cache pool for Bitmap. Based on LruCache and [DiskLruCache](https://github.com/J
 * **BitmapEncoder/Decoder**<br/>
 Supports PNG, JPEG, BMP, WEBP.
 * **BitmapChanger**<br/>
-Can clip, zoom, flip, rotate, seed filling bitmap and so on.
+Can clip, zoom, flip, rotate, seed filling bitmap and so on.<br/>
 Seed filling function using C/C++ to achieve, efficiency is guaranteed.
 
 # To get a Git project into your build (gradle):
