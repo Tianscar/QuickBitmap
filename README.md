@@ -2,8 +2,6 @@
 
 A simple android-bitmap toolkit.
 
-JavaDoc: https://tianscar.github.io/QuickBitmap/
-
 # To get a Git project into your build (gradle):
 
 * Step 1. Add the JitPack repository to your build file<br/>
