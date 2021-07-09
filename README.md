@@ -1,5 +1,6 @@
 [**简体中文**](https://github.com/Tianscar/QuickBitmap/blob/master/README-zh_CN.md)
 # QuickBitmap
+[JavaDoc](https://tianscar.github.io/QuickBitmap)
 
 **An android-bitmap toolkit provides some useful functions e.g.**
 * **BitmapPool**<br/>
@@ -27,7 +28,7 @@ allprojects {
 ```
 dependencies {
 	...
-	implementation 'com.github.tianscar:quickbitmap:1.0.0'
+	implementation 'com.github.tianscar:quickbitmap:1.0.1'
 }
 ```
 

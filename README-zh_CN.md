@@ -1,4 +1,5 @@
 # QuickBitmap
+[文档](https://tianscar.github.io/QuickBitmap)
 
 **一个简单的安卓Bitmap工具包，包含一些基础功能：**
 * **BitmapPool**<br/>
@@ -26,7 +27,7 @@ allprojects {
 ```
 dependencies {
 	...
-	implementation 'com.github.tianscar:quickbitmap:1.0.0'
+	implementation 'com.github.tianscar:quickbitmap:1.0.1'
 }
 ```
 
