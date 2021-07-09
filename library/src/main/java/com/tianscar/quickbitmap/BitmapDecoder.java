@@ -42,8 +42,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.tianscar.androidutils.ApplicationUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -276,7 +274,7 @@ public final class BitmapDecoder {
     public static @Nullable Bitmap decodeAsset (@NonNull String asset,
                                                 @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
-        AssetManager assets = ApplicationUtils.getAssets();
+        AssetManager assets = Utils.getApplication().getAssets();
         try {
             bitmap = decodeStream(assets.open(asset), config);
         }
@@ -293,7 +291,7 @@ public final class BitmapDecoder {
     public static @Nullable Bitmap decodeAsset (@NonNull String asset,
                                                 @NonNull Rect region, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
-        AssetManager assets = ApplicationUtils.getApplication().getAssets();
+        AssetManager assets = Utils.getApplication().getAssets();
         try {
             bitmap = decodeStream(assets.open(asset), region, config);
         }
@@ -309,7 +307,7 @@ public final class BitmapDecoder {
 
     public static @Nullable Bitmap decodeResource (int resId, @Nullable Bitmap.Config config) {
         Bitmap bitmap;
-        Resources res = ApplicationUtils.getApplication().getResources();
+        Resources res = Utils.getApplication().getResources();
         try {
             bitmap = decodeStream(res.openRawResource(resId), config);
         }
@@ -319,7 +317,7 @@ public final class BitmapDecoder {
             options.inPreferredConfig = config;
             bitmap = BitmapFactory.decodeResource(res, resId, options);
             if (bitmap == null) {
-                Drawable drawable = ContextCompat.getDrawable(ApplicationUtils.getApplication(), resId);
+                Drawable drawable = ContextCompat.getDrawable(Utils.getApplication(), resId);
                 if (drawable != null) {
                     bitmap = decodeDrawable(drawable, config);
                 }
@@ -335,12 +333,12 @@ public final class BitmapDecoder {
     public static @Nullable Bitmap decodeResource (int resId, @NonNull Rect region,
                                                    @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
-        Resources res = ApplicationUtils.getApplication().getResources();
+        Resources res = Utils.getApplication().getResources();
         try {
             bitmap = decodeStream(res.openRawResource(resId), region, config);
         }
         catch (Resources.NotFoundException e) {
-            Drawable drawable = ContextCompat.getDrawable(ApplicationUtils.getApplication(), resId);
+            Drawable drawable = ContextCompat.getDrawable(Utils.getApplication(), resId);
             if (drawable != null) {
                 bitmap = decodeDrawable(drawable, region, config);
             }
@@ -411,7 +409,7 @@ public final class BitmapDecoder {
 
     public static @Nullable Bitmap decodeUri (@NonNull Uri uri, @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
-        ContentResolver resolver = ApplicationUtils.getApplication().getContentResolver();
+        ContentResolver resolver = Utils.getApplication().getContentResolver();
         try {
             InputStream stream = resolver.openInputStream(uri);
             if (stream != null) {
@@ -431,7 +429,7 @@ public final class BitmapDecoder {
     public static @Nullable Bitmap decodeUri (@NonNull Uri uri, @NonNull Rect region,
                                               @Nullable Bitmap.Config config) {
         Bitmap bitmap = null;
-        ContentResolver resolver = ApplicationUtils.getApplication().getContentResolver();
+        ContentResolver resolver = Utils.getApplication().getContentResolver();
         try {
             InputStream stream = resolver.openInputStream(uri);
             if (stream != null) {

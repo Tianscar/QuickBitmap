@@ -37,8 +37,6 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 
-import com.tianscar.androidutils.MathUtils;
-
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -57,7 +55,7 @@ public final class BitmapChanger {
     /**
      * Create a copy bitmap for change and do not modify the source.
      *
-     * @see BitmapChanger(Bitmap, boolean);
+     * @see BitmapChanger(Bitmap, boolean)
      *
      * @param src the source bitmap
      */
@@ -66,31 +64,62 @@ public final class BitmapChanger {
     }
 
     /**
-     * If @param isCopy is true,
-     * it will create a copy bitmap for change and do not modify the source.
-     * else it will change the source bitmap.
+     * Create a copy bitmap for change.
+     * If @param recycle is false, it will not modify the source,
+     * else it will recycle the source bitmap.
+     *
+     * @see BitmapChanger()
      *
      * @param src the source bitmap
-     * @param isCopy whether create & use copy
+     * @param recycle whether recycle source
      */
-    public BitmapChanger(@NonNull Bitmap src, boolean isCopy) {
+    public BitmapChanger(@NonNull Bitmap src, boolean recycle) {
         this();
-        wrap(src, isCopy);
+        wrap(src, recycle);
     }
 
+    /**
+     * Copy a bitmap region from the source for change and do not modify the source.
+     *
+     * @see BitmapChanger(Bitmap, int, int, int, int)
+     *
+     * @param src the source bitmap
+     * @param region the region
+     */
     public BitmapChanger(@NonNull Bitmap src, @NonNull Rect region) {
         this(src, region.left, region.top, region.width(), region.height());
     }
 
+    /**
+     * Copy a bitmap region from the source for change and do not modify the source.
+     *
+     * @see BitmapChanger(Bitmap, int, int, int, int)
+     *
+     * @param src the source bitmap
+     * @param region the region
+     */
     public BitmapChanger(@NonNull Bitmap src, @NonNull RectF region) {
         this(src, (int) region.left, (int) region.top, (int) region.width(), (int) region.height());
     }
 
+    /**
+     * Copy a bitmap region from the source for change and do not modify the source.
+     *
+     * @param src the source bitmap
+     * @param x region left
+     * @param y region top
+     * @param width region width
+     * @param height region height
+     */
     public BitmapChanger(@NonNull Bitmap src, int x, int y, int width, int height) {
         this();
         wrap(src, x, y, width, height);
     }
 
+    /**
+     * Instantiate a BitmapChanger for use.
+     * You may wrap a bitmap for change.
+     */
     public BitmapChanger() {
         paint = new Paint();
         paint.setAntiAlias(false);
@@ -101,21 +130,33 @@ public final class BitmapChanger {
         lock = new ReentrantLock(true);
     }
 
+    /**
+     * Create a copy bitmap for change and do not modify the source.
+     *
+     * @see BitmapChanger wrap(Bitmap, boolean)
+     *
+     * @param src the source bitmap
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger wrap(@NonNull Bitmap src) {
-        return wrap(src, true);
+        return wrap(src, false);
     }
 
-    public BitmapChanger wrap(@NonNull Bitmap src, boolean isCopy) {
-        if (!src.isMutable()) {
-            throw new IllegalArgumentException("Unable to change immutable bitmap.");
-        }
+    /**
+     * Create a copy bitmap for change.
+     * If @param recycle is false, it will not modify the source,
+     * else it will recycle the source bitmap.
+     *
+     * @param src the source bitmap
+     * @param recycle whether recycle source
+     * @return BitmapChanger the current instance
+     */
+    public BitmapChanger wrap(@NonNull Bitmap src, boolean recycle) {
         lock.lock();
         try {
-            if (isCopy) {
-                dst = Bitmap.createBitmap(src);
-            }
-            else {
-                dst = src;
+            dst = src.copy(src.getConfig(), true);
+            if (recycle) {
+                BitmapUtils.recycle(src);
             }
             changed = false;
         }
@@ -125,14 +166,43 @@ public final class BitmapChanger {
         return this;
     }
 
+    /**
+     * Copy a bitmap region from the source for change and do not modify the source.
+     *
+     * @see BitmapChanger wrap(Bitmap, int, int, int, int)
+     *
+     * @param src the source bitmap
+     * @param region the region
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger wrap(@NonNull Bitmap src, @NonNull Rect region) {
         return wrap(src, region.left, region.top, region.width(), region.height());
     }
 
+    /**
+     * Copy a bitmap region from the source for change and do not modify the source.
+     *
+     * @see BitmapChanger wrap(Bitmap, int, int, int, int)
+     *
+     * @param src the source bitmap
+     * @param region the region
+     * @return BitmapChanger the current instance
+     */
+    public BitmapChanger wrap(@NonNull Bitmap src, @NonNull RectF region) {
+        return wrap(src, (int) region.left, (int) region.top, (int) region.width(), (int) region.height());
+    }
+
+    /**
+     * Copy a bitmap region from the source for change and do not modify the source.
+     *
+     * @param src the source bitmap
+     * @param x region left
+     * @param y region top
+     * @param width region width
+     * @param height region height
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger wrap(@NonNull Bitmap src, int x, int y, int width, int height) {
-        if (!src.isMutable()) {
-            throw new IllegalArgumentException("Unable to change immutable bitmap.");
-        }
         lock.lock();
         try {
             dst = Bitmap.createBitmap(src, x, y, width, height);
@@ -145,23 +215,17 @@ public final class BitmapChanger {
     }
 
     /**
-     * Cut out part of the bitmap.
+     * Cut out region of the bitmap.
      *
-     * @param x begin x
-     * @param y begin y
-     * @param width dest bitmap width
-     * @param height dest bitmap height
+     * @param x region left
+     * @param y region top
+     * @param width region width
+     * @param height region height
      * @param outBounds whether create bitmap which can larger than the source
      * @return BitmapChanger the current instance
      */
     public BitmapChanger cut (int x, int y, int width, int height, boolean outBounds) {
         checkChanged();
-        if (width <= 0) {
-            throw new IllegalArgumentException("Width must be > 0");
-        }
-        if (height <= 0) {
-            throw new IllegalArgumentException("Height must be > 0");
-        }
         lock.lock();
         try {
             int originalWidth = dst.getWidth();
@@ -231,18 +295,29 @@ public final class BitmapChanger {
         }
         return this;
     }
-    
+
+    /**
+     * Cut out region of the bitmap (can larger than the source).
+     *
+     * @see BitmapChanger cut(int, int, int, int, boolean)
+     *
+     * @param x region left
+     * @param y region top
+     * @param width region width
+     * @param height region height
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger cut (int x, int y, int width, int height) {
         return cut(x, y, width, height, true);
     }
 
     /**
-     * Cut out part of the bitmap.
+     * Cut out region of the bitmap.
      *
-     * @param left the left-bound coordinate to crop
-     * @param top the top-bound coordinate to crop
-     * @param right the right-bound coordinate to crop
-     * @param bottom the bottom-bound coordinate to crop
+     * @param left region left
+     * @param top region top
+     * @param right region right
+     * @param bottom region bottom
      * @param outBounds whether create bitmap which can larger than the source
      * @return BitmapChanger the current instance
      */
@@ -256,13 +331,24 @@ public final class BitmapChanger {
         int height = Math.max(top, bottom) - y + 1;
         return cut (x, y, width, height, outBounds);
     }
-    
+
+    /**
+     * Cut out region of the bitmap (can larger than the source).
+     *
+     * @see BitmapChanger cut(int, int, int, int, boolean)
+     *
+     * @param left region left
+     * @param top region top
+     * @param right region right
+     * @param bottom region bottom
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger crop (int left, int top, int right, int bottom) {
         return crop(left, top, right, bottom, true);
     }
 
     /**
-     * Cut out part of the bitmap.
+     * Cut out region of the bitmap.
      *
      * @see BitmapChanger crop(int, int, int, int, boolean)
      *
@@ -273,13 +359,21 @@ public final class BitmapChanger {
     public BitmapChanger crop (@NonNull Rect region, boolean outBounds) {
         return crop (region.left, region.top, region.right, region.bottom, outBounds);
     }
-    
+
+    /**
+     * Cut out region of the bitmap (can larger than the source).
+     *
+     * @see BitmapChanger crop(Rect, boolean)
+     *
+     * @param region the region
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger crop (@NonNull Rect region) {
         return crop (region, true);
     }
 
     /**
-     * Cut out part of the bitmap.
+     * Cut out region of the bitmap.
      *
      * @see BitmapChanger crop(int, int, int, int, boolean)
      *
@@ -292,12 +386,20 @@ public final class BitmapChanger {
                 outBounds);
     }
 
+    /**
+     * Cut out region of the bitmap (can larger than the source).
+     *
+     * @see BitmapChanger crop(RectF, boolean)
+     *
+     * @param region the region
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger crop (@NonNull RectF region) {
         return crop (region, true);
     }
 
     /**
-     * Clip path for the bitmap.
+     * Clip path on the whole bitmap.
      *
      * @param path path to clip
      * @return BitmapChanger the current instance
@@ -331,7 +433,7 @@ public final class BitmapChanger {
     }
 
     /**
-     * Clip oval for the whole bitmap.
+     * Clip oval on the whole bitmap.
      *
      * @see BitmapChanger clipPath(Path)
      *
@@ -351,7 +453,7 @@ public final class BitmapChanger {
     }
 
     /**
-     * Clip round rect for the whole bitmap.
+     * Clip round rect on the whole bitmap.
      *
      * @see BitmapChanger clipPath(Path)
      *
@@ -373,14 +475,14 @@ public final class BitmapChanger {
     }
 
     /**
-     * Clip round rect for the whole bitmap.
+     * Clip round rect on the whole bitmap.
      *
      * @see BitmapChanger clipPath(Path)
      *
      * @param radii radii
      * @return BitmapChanger the current instance
      */
-    public BitmapChanger clipRoundRect (float[] radii) {
+    public BitmapChanger clipRoundRect (@NonNull float[] radii) {
         checkChanged();
         lock.lock();
         try {
@@ -397,13 +499,15 @@ public final class BitmapChanger {
      * Use matrix to change the bitmap.
      *
      * @param matrix the matrix for change
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger matrixChange(@NonNull Matrix matrix, boolean filter) {
         checkChanged();
         lock.lock();
         try {
+            canvas.setBitmap(dst);
+            canvas.drawBitmap(dst, matrix, paint);
             replaceDst(Bitmap.createBitmap(dst, 0, 0, dst.getWidth(), dst.getHeight(), matrix, filter));
         }
         finally {
@@ -412,6 +516,14 @@ public final class BitmapChanger {
         return this;
     }
 
+    /**
+     * Use matrix to change the bitmap (do not use filter).
+     *
+     * @see BitmapChanger matrixChange(Matrix, boolean)
+     *
+     * @param matrix the matrix for change
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger matrixChange(@NonNull Matrix matrix) {
         return matrixChange(matrix, false);
     }
@@ -419,36 +531,10 @@ public final class BitmapChanger {
     /**
      * Rotate the bitmap.
      *
-     * @see BitmapChanger matrixChange(Matrix)
+     * @see BitmapChanger matrixChange(Matrix, boolean)
      *
      * @param degrees the degrees
-     * @param filter use filter
-     * @return BitmapChanger the current instance
-     */
-    public BitmapChanger rotateDegrees (int degrees, boolean filter) {
-        checkChanged();
-        lock.lock();
-        try {
-            matrix.reset();
-            matrix.setRotate(degrees, dst.getWidth() * 0.5f, dst.getHeight() * 0.5f);
-        }
-        finally {
-            lock.unlock();
-        }
-        return matrixChange(matrix, filter);
-    }
-
-    public BitmapChanger rotateDegrees (int degrees) {
-        return rotateDegrees(degrees, false);
-    }
-
-    /**
-     * Rotate the bitmap.
-     *
-     * @see BitmapChanger matrixChange(Matrix)
-     *
-     * @param degrees the degrees
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger rotateDegrees (float degrees, boolean filter) {
@@ -464,6 +550,14 @@ public final class BitmapChanger {
         return matrixChange(matrix, filter);
     }
 
+    /**
+     * Rotate the bitmap (do not use filter).
+     *
+     * @see BitmapChanger rotateDegrees(float, boolean)
+     *
+     * @param degrees the degrees
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger rotateDegrees (float degrees) {
         return rotateDegrees(degrees, false);
     }
@@ -471,33 +565,24 @@ public final class BitmapChanger {
     /**
      * Rotate the bitmap.
      *
-     * @see BitmapChanger matrixChange(Matrix)
+     * @see BitmapChanger rotateDegrees(float, boolean)
      *
      * @param radians the radians
-     * @param filter use filter
-     * @return BitmapChanger the current instance
-     */
-    public BitmapChanger rotateRadians (int radians, boolean filter) {
-        return rotateDegrees(MathUtils.rad2deg(radians), filter);
-    }
-
-    public BitmapChanger rotateRadians (int radians) {
-        return rotateRadians(radians, false);
-    }
-
-    /**
-     * Rotate the bitmap.
-     *
-     * @see BitmapChanger matrixChange(Matrix)
-     *
-     * @param radians the radians
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger rotateRadians (float radians, boolean filter) {
-        return rotateDegrees(MathUtils.rad2deg(radians), filter);
+        return rotateDegrees(Utils.rad2deg(radians), filter);
     }
 
+    /**
+     * Rotate the bitmap (do not use filter).
+     *
+     * @see BitmapChanger rotateRadians(float, boolean);
+     *
+     * @param radians the radians
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger rotateRadians (float radians) {
         return rotateRadians(radians, false);
     }
@@ -514,7 +599,7 @@ public final class BitmapChanger {
         lock.lock();
         try {
             matrix.reset();
-            matrix.postScale(-1, 1);
+            matrix.setScale(-1, 1);
         }
         finally {
             lock.unlock();
@@ -534,7 +619,7 @@ public final class BitmapChanger {
         lock.lock();
         try {
             matrix.reset();
-            matrix.postScale(1, -1);
+            matrix.setScale(1, -1);
         }
         finally {
             lock.unlock();
@@ -543,13 +628,89 @@ public final class BitmapChanger {
     }
 
     /**
+     * Skew the bitmap.
+     *
+     * @see BitmapChanger matrixChange(Matrix, boolean)
+     *
+     * @param skewX skew x
+     * @param skewY skew y
+     * @param centerX center x
+     * @param centerY center y
+     * @param filter whether use filter
+     * @return BitmapChanger the current instance
+     */
+    public BitmapChanger skew (float skewX, float skewY, float centerX, float centerY, boolean filter) {
+        checkChanged();
+        lock.lock();
+        try {
+            matrix.reset();
+            matrix.setSkew(skewX, skewY, centerX, centerY);
+        }
+        finally {
+            lock.unlock();
+        }
+        return matrixChange(matrix, filter);
+    }
+
+    /**
+     * Skew the bitmap (do not use filter).
+     *
+     * @see BitmapChanger skew(float, float, float, float, boolean)
+     *
+     * @param skewX skew x
+     * @param skewY skew y
+     * @param centerX center x
+     * @param centerY center y
+     * @return BitmapChanger the current instance
+     */
+    public BitmapChanger skew (float skewX, float skewY, float centerX, float centerY) {
+        return skew(skewX, skewY, centerX, centerY, false);
+    }
+
+    /**
+     * Skew the bitmap.
+     *
+     * @see BitmapChanger matrixChange(Matrix, boolean)
+     *
+     * @param skewX skew x
+     * @param skewY skew y
+     * @param filter whether use filter
+     * @return BitmapChanger the current instance
+     */
+    public BitmapChanger skew (float skewX, float skewY, boolean filter) {
+        checkChanged();
+        lock.lock();
+        try {
+            matrix.reset();
+            matrix.setSkew(skewX, skewY);
+        }
+        finally {
+            lock.unlock();
+        }
+        return matrixChange(matrix, filter);
+    }
+
+    /**
+     * Skew the bitmap (do not use filter).
+     *
+     * @see BitmapChanger skew(float, float, boolean)
+     *
+     * @param skewX skew x
+     * @param skewY skew y
+     * @return BitmapChanger the current instance
+     */
+    public BitmapChanger skew (float skewX, float skewY) {
+        return skew(skewX, skewY, false);
+    }
+
+    /**
      * Scale the bitmap.
      *
-     * @see BitmapChanger matrixChange(Matrix)
+     * @see BitmapChanger matrixChange(Matrix, boolean)
      *
      * @param scaleX x scale
      * @param scaleY y scale
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger scale (float scaleX, float scaleY, boolean filter) {
@@ -563,7 +724,7 @@ public final class BitmapChanger {
         lock.lock();
         try {
             matrix.reset();
-            matrix.postScale(scaleX, scaleY);
+            matrix.setScale(scaleX, scaleY);
         }
         finally {
             lock.unlock();
@@ -571,8 +732,17 @@ public final class BitmapChanger {
         return matrixChange(matrix, filter);
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger scale(float, float, boolean)
+     *
+     * @param scaleX x scale
+     * @param scaleY y scale
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger scale (float scaleX, float scaleY) {
-        return scale(scaleX, scaleY, true);
+        return scale(scaleX, scaleY, false);
     }
 
     /**
@@ -581,13 +751,21 @@ public final class BitmapChanger {
      * @see BitmapChanger scale(float, float, boolean)
      *
      * @param scale x & y scale
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger scale (float scale, boolean filter) {
         return scale(scale, scale, filter);
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger scale(float, float)
+     *
+     * @param scale x & y scale
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger scale (float scale) {
         return scale(scale, scale);
     }
@@ -598,13 +776,21 @@ public final class BitmapChanger {
      * @see BitmapChanger scale(float, float, boolean)
      *
      * @param scaleX x scale
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger scaleX (float scaleX, boolean filter) {
         return scale(scaleX, 1, filter);
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger scale(float, float)
+     *
+     * @param scaleX x scale
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger scaleX (float scaleX) {
         return scale(scaleX, 1);
     }
@@ -615,13 +801,21 @@ public final class BitmapChanger {
      * @see BitmapChanger scale(float, float, boolean)
      *
      * @param scaleY y scale
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger scaleY (float scaleY, boolean filter) {
         return scale(1, scaleY, filter);
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger scale(float, float)
+     *
+     * @param scaleY y scale
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger scaleY (float scaleY) {
         return scale(1, scaleY);
     }
@@ -631,7 +825,7 @@ public final class BitmapChanger {
      *
      * @param width scaled width
      * @param height scaled height
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger resize (int width, int height, boolean filter) {
@@ -652,8 +846,17 @@ public final class BitmapChanger {
         return this;
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger resize(int, int, boolean)
+     *
+     * @param width scaled width
+     * @param height scaled height
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger resize (int width, int height) {
-        return resize(width, height, true);
+        return resize(width, height, false);
     }
 
     /**
@@ -662,13 +865,21 @@ public final class BitmapChanger {
      * @see BitmapChanger resize(int, int, boolean)
      *
      * @param width scaled width
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger resizeWidth (int width, boolean filter) {
         return resize(width, dst.getHeight(), filter);
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger resize(int, int)
+     *
+     * @param width scaled width
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger resizeWidth (int width) {
         return resize(width, dst.getHeight());
     }
@@ -679,13 +890,21 @@ public final class BitmapChanger {
      * @see BitmapChanger resize(int, int, boolean)
      *
      * @param height scaled height
-     * @param filter use filter
+     * @param filter whether use filter
      * @return BitmapChanger the current instance
      */
     public BitmapChanger resizeHeight (int height, boolean filter) {
         return resize(dst.getWidth(), height, filter);
     }
 
+    /**
+     * Scale the bitmap (do not use filter).
+     *
+     * @see BitmapChanger resize(int, int)
+     *
+     * @param height scaled height
+     * @return BitmapChanger the current instance
+     */
     public BitmapChanger resizeHeight (int height) {
         return resize(dst.getWidth(), height);
     }
@@ -718,7 +937,10 @@ public final class BitmapChanger {
     }
 
     /**
-     * Seed filling.
+     * Seed filling.<br/>
+     * Unsupported bitmap config:<br/>
+     * Bitmap.Config.HARDWARE<br/>
+     * Bitmap.Config.RGBA_F16
      *
      * @param x position x
      * @param y position y
@@ -730,7 +952,7 @@ public final class BitmapChanger {
         switch (dst.getConfig()) {
             case HARDWARE:
             case RGBA_F16:
-                throw new IllegalArgumentException("Unsupported bitmap config.");
+                throw new UnsupportedOperationException("Unsupported bitmap config.");
         }
         lock.lock();
         try {

@@ -30,8 +30,7 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import com.tianscar.androidutils.MathUtils;
+import androidx.core.math.MathUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

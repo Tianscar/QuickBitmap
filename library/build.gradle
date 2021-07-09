@@ -68,7 +68,6 @@ android {
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.github.Tianscar:AndroidUtils:1.0.3'
     implementation 'com.jakewharton:disklrucache:2.0.2'
 
 }

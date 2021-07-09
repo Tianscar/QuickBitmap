@@ -32,7 +32,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.jakewharton.disklrucache.DiskLruCache;
-import com.tianscar.androidutils.EnvironmentUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +60,7 @@ public final class BitmapPool {
 
     @NonNull
     public static File getDefaultDirectory() {
-        return new File(EnvironmentUtils.getInternalCacheDir(), "bitmap_pool");
+        return new File(Utils.getApplication().getCacheDir(), "bitmap_pool");
     }
 
     private final BitmapLruCache mLruCache;

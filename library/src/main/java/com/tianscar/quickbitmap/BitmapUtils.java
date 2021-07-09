@@ -54,7 +54,7 @@ public class BitmapUtils {
     /**
      * Recycle bitmap.
      *
-     * @see BitmapUtils recycleBitmap(Bitmap)
+     * @see BitmapUtils recycle(Bitmap)
      *
      * @param bitmaps bitmaps to recycle
      */
@@ -68,13 +68,14 @@ public class BitmapUtils {
     }
 
     /**
-     * Returns the bitmap's mutable copy and recycle it.
+     * If the bitmap is mutable, it will return it.
+     * Otherwise, it returns the bitmap's mutable copy and recycle it.
      *
      * @param bitmap the bitmap in which to return its mutable copy and recycle
      * @return the mutable copy of the bitmap.
      */
     @NonNull
-    public static Bitmap setMutable(@NonNull Bitmap bitmap) {
+    public static Bitmap copyMutable(@NonNull Bitmap bitmap) {
         if (!bitmap.isMutable()) {
             Bitmap temp = bitmap;
             bitmap = bitmap.copy(bitmap.getConfig(), true);
