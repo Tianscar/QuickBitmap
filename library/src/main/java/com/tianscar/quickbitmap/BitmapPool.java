@@ -98,8 +98,10 @@ public final class BitmapPool {
                 @Override
                 public void onEntryRemoved(boolean evicted, @NonNull String key,
                                            @NonNull Bitmap oldValue, @Nullable Bitmap newValue) {
-                    putDiskLruCache(key, oldValue);
-                    BitmapUtils.recycle(oldValue);
+                    if (evicted) {
+                        putDiskLruCache(key, oldValue);
+                        BitmapUtils.recycle(oldValue);
+                    }
                 }
             });
             try {
@@ -141,6 +143,31 @@ public final class BitmapPool {
             mReadWriteLock.readLock().unlock();
         }
         return result;
+    }
+
+    public void remove(@NonNull String name) {
+        mReadWriteLock.writeLock().lock();
+        try {
+            if (mLruCache.get(name) == null) {
+                removeDiskLruCache(name);
+            }
+            else {
+                BitmapUtils.recycle(mLruCache.get(name));
+                mLruCache.remove(name);
+            }
+        }
+        finally {
+            mReadWriteLock.writeLock().unlock();
+        }
+    }
+
+    private void removeDiskLruCache(@NonNull String name) {
+        try {
+            mDiskLruCache.remove(name);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void checkReleased() {
