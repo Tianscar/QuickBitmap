@@ -28,7 +28,7 @@ allprojects {
 ```
 dependencies {
 	...
-	implementation 'com.github.tianscar:quickbitmap:1.0.2'
+	implementation 'com.github.tianscar:quickbitmap:1.0.2a'
 }
 ```
 

@@ -118,9 +118,9 @@ public final class BitmapPool {
     }
 
     public void put(@NonNull String name, @NonNull Bitmap bitmap) {
+        checkReleased();
         mReadWriteLock.writeLock().lock();
         try {
-            checkReleased();
             mLruCache.put(name, bitmap);
         }
         finally {
@@ -130,10 +130,10 @@ public final class BitmapPool {
 
     @Nullable
     public Bitmap get(@NonNull String name) {
+        checkReleased();
         mReadWriteLock.readLock().lock();
         Bitmap result;
         try {
-            checkReleased();
             result = mLruCache.get(name);
             if (result == null) {
                 result = getDiskLruCache(name);
@@ -146,6 +146,7 @@ public final class BitmapPool {
     }
 
     public void remove(@NonNull String name) {
+        checkReleased();
         mReadWriteLock.writeLock().lock();
         try {
             if (mLruCache.get(name) == null) {
@@ -182,9 +183,9 @@ public final class BitmapPool {
     }
 
     public void release(boolean clear) {
+        checkReleased();
         mReadWriteLock.writeLock().lock();
         try {
-            checkReleased();
             releaseLruCache();
             releaseDiskLruCache(clear);
         }
@@ -195,9 +196,9 @@ public final class BitmapPool {
     }
 
     public void flush() {
+        checkReleased();
         mReadWriteLock.writeLock().lock();
         try {
-            checkReleased();
             releaseLruCache();
         }
         finally {
