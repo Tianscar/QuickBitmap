@@ -28,14 +28,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
-        versionCode 4
-        versionName "1.0.2a"
+        targetSdkVersion 31
+        versionCode 5
+        versionName "1.0.2.2"
         externalNativeBuild {
             cmake {
                 cppFlags ""

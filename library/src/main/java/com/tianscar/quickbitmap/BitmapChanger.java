@@ -60,7 +60,7 @@ public final class BitmapChanger {
      * @param src the source bitmap
      */
     public BitmapChanger(@NonNull Bitmap src) {
-        this(src, true);
+        this(src, false);
     }
 
     /**
