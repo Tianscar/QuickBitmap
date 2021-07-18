@@ -60,7 +60,11 @@ public final class BitmapPool {
 
     @NonNull
     public static File getDefaultDirectory() {
-        return new File(Utils.getApplication().getCacheDir(), "bitmap_pool");
+        File result = Utils.getInternalFilesDir("bitmap_pool");
+        if (result == null) {
+            throw new RuntimeException("Cache dir is not available.");
+        }
+        return result;
     }
 
     private final BitmapLruCache mLruCache;

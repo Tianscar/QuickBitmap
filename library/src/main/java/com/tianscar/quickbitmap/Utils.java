@@ -27,12 +27,11 @@ package com.tianscar.quickbitmap;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.content.Context;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import java.io.File;
 import java.lang.reflect.Method;
 
 final class Utils {
@@ -85,6 +84,24 @@ final class Utils {
      */
     public static float rad2deg (float rad) {
         return (float) (rad * 180 / Math.PI);
+    }
+
+    /**
+     * Gets the application's internal files dir from type string.
+     * If the dir created successfully, it will be returned,
+     * else will return null.
+     *
+     * @param type the type string
+     * @return the internal files dir, or null if mkdir failed
+     */
+    @Nullable
+    public static File getInternalFilesDir(@NonNull String type) {
+        File dir = new File(getApplication().
+                getFilesDir().getAbsolutePath() + type);
+        if (dir.mkdirs()) {
+            return dir;
+        }
+        return null;
     }
 
 }
