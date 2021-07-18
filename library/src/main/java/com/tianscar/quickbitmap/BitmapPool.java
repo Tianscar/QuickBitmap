@@ -255,9 +255,6 @@ public final class BitmapPool {
                 return null;
             }
             InputStream inputStream = snapshot.getInputStream(0);
-            if (inputStream == null) {
-                return null;
-            }
             return BitmapFactory.decodeStream(inputStream);
         }
         catch (IOException e) {
