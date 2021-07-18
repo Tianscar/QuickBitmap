@@ -251,6 +251,9 @@ public final class BitmapPool {
     private Bitmap getDiskLruCache(@NonNull String name) {
         try {
             DiskLruCache.Snapshot snapshot = mDiskLruCache.get(name);
+            if (snapshot == null) {
+                return null;
+            }
             InputStream inputStream = snapshot.getInputStream(0);
             if (inputStream == null) {
                 return null;
