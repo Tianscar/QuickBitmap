@@ -252,6 +252,9 @@ public final class BitmapPool {
         try {
             DiskLruCache.Snapshot snapshot = mDiskLruCache.get(name);
             InputStream inputStream = snapshot.getInputStream(0);
+            if (inputStream == null) {
+                return null;
+            }
             return BitmapFactory.decodeStream(inputStream);
         }
         catch (IOException e) {
