@@ -96,8 +96,7 @@ final class Utils {
      */
     @Nullable
     public static File getInternalFilesDir(@NonNull String type) {
-        File dir = new File(getApplication().
-                getFilesDir().getAbsolutePath() + type);
+        File dir = new File(getApplication().getFilesDir(), type);
         if (dir.mkdirs()) {
             return dir;
         }
